@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Linting / testing / output
+.pytest_cache/
+.ruff_cache
+fretsy_output/
+test_output/
+
+# Kiro
+.kiro/

@@ -1,0 +1,73 @@
+[project]
+name = "fretsy"
+version = "1.0.0"
+description = "A pure-Python library for generating guitar chord diagram images (SVG and PNG)"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+keywords = ["guitar", "chord", "diagram", "svg", "png", "music"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Graphics",
+]
+dependencies = []
+
+[project.optional-dependencies]
+png = [
+    "cairosvg",
+    "pillow",
+]
+
+[project.urls]
+Homepage = "https://github.com/OWNER/fretsy"
+Repository = "https://github.com/OWNER/fretsy"
+
+[project.scripts]
+fretsy = "fretsy.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pyrefly>=0.62.0",
+    "pytest>=9.0.3",
+    "ruff>=0.15.12",
+]
+
+[tool.ruff]
+target-version = "py310"
+src = ["src"]
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "RUF",  # ruff-specific rules
+]
+
+[tool.ruff.lint.per-file-ignores]
+"src/fretsy/_library.py" = ["E501"]  # data file — long chord definitions are fine
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pyrefly]
+project_includes = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
