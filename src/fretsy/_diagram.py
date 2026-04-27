@@ -302,11 +302,72 @@ def render_svg(chord: ChordDiagram, style: DiagramStyle = STYLE_DEFAULT) -> str:
             f.write(svg)
     """
     s = style
-    W, H = s.width, s.height
     ss = s.string_spacing
-    fs = s.fret_spacing
     left = s.padding_side
-    top = s.padding_top
+
+    # --- Dynamic top layout ---
+    # Zones top-to-bottom:
+    #   1. Chord name (always present)
+    #   2. Label / variation (optional)
+    #   3. Open/mute markers (only if chord has open or muted strings)
+    #   4. Grid (nut + fretboard)
+    #
+    # The markers sit tight against the grid. Name and label stack above
+    # with small fixed gaps between them.
+    has_label = chord.label is not None
+    has_markers = any(f <= 0 for f in chord.frets)  # open or muted strings
+    open_r = ss * s.open_dot_radius_frac
+    marker_zone_height = open_r * 2 + 2  # circle diameter + tiny breathing room
+
+    # Build from the grid upward to figure out where the top is.
+    # Start with a reference point for the grid top, then stack elements above.
+    elements_above_grid = 0.0
+
+    # Markers sit just above the grid (tight, ~4px gap)
+    if has_markers:
+        elements_above_grid += marker_zone_height + 4
+
+    # Label sits above markers (or above grid if no markers)
+    if has_label:
+        elements_above_grid += s.label_size * 0.7
+
+    # Chord name sits above label (or above markers, or above grid)
+    # Add a small gap between name and whatever is below it
+    elements_above_grid += s.chord_name_size * 0.7 + 2
+
+    # Top padding (matches bottom)
+    top_padding = float(s.padding_bottom)
+
+    # Grid starts after all the above
+    top = top_padding + elements_above_grid
+
+    # Now compute y positions top-down
+    y_cursor = top_padding
+
+    # 1. Chord name
+    name_y = y_cursor + s.chord_name_size * 0.37
+    y_cursor += s.chord_name_size * 0.7 + 2  # visual height + small gap
+
+    # 2. Optional label
+    label_y = 0.0
+    if has_label:
+        label_y = y_cursor + s.label_size * 0.37
+        y_cursor += s.label_size * 0.7
+
+    # 3. Marker center y (markers hug the grid)
+    marker_cy = top - marker_zone_height / 2 - 2 if has_markers else top - 10
+    # Grid height: use remaining space if the style height is large enough,
+    # otherwise fall back to the default grid height from the style.
+    remaining = s.height - s.padding_bottom - top
+    grid_height = remaining if remaining > 50 else s.grid_height
+    # Fret spacing based on actual grid height
+    fs = grid_height / s.num_frets
+
+    # Total SVG height
+    H = int(top + grid_height + s.padding_bottom)
+    if chord.base_fret == 1:
+        H += s.nut_thickness
+    W = s.width
 
     svg = ET.Element(
         "svg",
@@ -336,7 +397,7 @@ def render_svg(chord: ChordDiagram, style: DiagramStyle = STYLE_DEFAULT) -> str:
         svg,
         "text",
         x=str(W // 2),
-        y=str(top - 52 + s.chord_name_size * 0.37),
+        y=str(name_y),
         text_anchor="middle",
         font_family=s.chord_name_font,
         font_size=str(s.chord_name_size),
@@ -345,12 +406,12 @@ def render_svg(chord: ChordDiagram, style: DiagramStyle = STYLE_DEFAULT) -> str:
     ).text = chord.name
 
     # Optional label
-    if chord.label:
+    if has_label:
         _sub(
             svg,
             "text",
             x=str(W // 2),
-            y=str(top - 34 + s.label_size * 0.37),
+            y=str(label_y),
             text_anchor="middle",
             font_family=s.label_font,
             font_size=str(s.label_size),
@@ -370,8 +431,6 @@ def render_svg(chord: ChordDiagram, style: DiagramStyle = STYLE_DEFAULT) -> str:
         )
         grid_top = top + s.nut_thickness
     else:
-        # Show fret number to the left, centered in the first fret space
-        # Offset enough to clear any barre overhang (dot_r past the first string)
         grid_top = top
         _barre_overhang = ss * s.dot_radius_frac
         _sub(
@@ -414,7 +473,6 @@ def render_svg(chord: ChordDiagram, style: DiagramStyle = STYLE_DEFAULT) -> str:
         )
 
     dot_r = ss * s.dot_radius_frac
-    open_r = ss * s.open_dot_radius_frac
 
     # Barre arc
     if chord.barre:
@@ -478,7 +536,7 @@ def render_svg(chord: ChordDiagram, style: DiagramStyle = STYLE_DEFAULT) -> str:
         if fret_val == -1:
             # Muted — draw X above the grid
             r = open_r
-            yx = grid_top - r - 10
+            yx = marker_cy
             d = r * 0.7
             _sub(
                 svg,
@@ -505,7 +563,7 @@ def render_svg(chord: ChordDiagram, style: DiagramStyle = STYLE_DEFAULT) -> str:
 
         elif fret_val == 0:
             # Open string; circle above grid
-            yx = grid_top - open_r - 10
+            yx = marker_cy
             _sub(
                 svg,
                 "circle",
