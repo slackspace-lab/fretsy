@@ -33,6 +33,7 @@ from fretsy._library import (
     SUSPENDED_CHORDS,
     find_chord,
 )
+from fretsy._version import __version__
 
 __all__ = [
     "ALL_CHORDS",
@@ -56,6 +57,7 @@ __all__ = [
     "SUSPENDED_CHORDS",
     "ChordDiagram",
     "DiagramStyle",
+    "__version__",
     "find_chord",
     "render_png",
     "render_svg",

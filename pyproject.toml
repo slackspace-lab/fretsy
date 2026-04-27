@@ -1,22 +1,12 @@
 [project]
 name = "fretsy"
-version = "1.0.0"
+dynamic = ["version"]
 description = "A pure-Python library for generating guitar chord diagram images (SVG and PNG)"
+authors = [{ name = "JP Copeland", email = "jp@slackspace.com" }]
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 keywords = ["guitar", "chord", "diagram", "svg", "png", "music"]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Multimedia :: Graphics",
-]
 dependencies = []
 
 [project.optional-dependencies]
@@ -26,15 +16,21 @@ png = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/OWNER/fretsy"
-Repository = "https://github.com/OWNER/fretsy"
+Homepage = "https://github.com/slackspace-lab/fretsy"
+Repository = "https://github.com/slackspace-lab/fretsy"
 
 [project.scripts]
 fretsy = "fretsy.__main__:main"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/fretsy/_version.py"
 
 [dependency-groups]
 dev = [
